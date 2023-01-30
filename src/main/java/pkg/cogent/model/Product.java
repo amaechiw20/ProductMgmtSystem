@@ -17,12 +17,6 @@ public class Product {
 	
 	public Product() {
 		super();
-		this.pId = 0;
-		this.pName = "J";
-		this.pCat = "R";
-		this.price = 10.0;
-		this.manufactureDate = "10-22-32";
-		this.expiryDate = "34-23-33";
 	}
 	
 	public Product(int pId, String pName, String pCat, double price, String manufactureDate, String expiryDate) {
