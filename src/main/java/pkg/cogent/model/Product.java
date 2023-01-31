@@ -1,25 +1,26 @@
 package pkg.cogent.model;
 
-//import java.sql.Date;
+import java.sql.Date;
 
 /**
  * 
  * @author William Amaechi
  * @date   Jan 30, 2023
  */
+
 public class Product {
 	private int pId;				//Product ID
 	private String pName;			//Product Name
 	private String pCat;			//Product Category
 	private double price;			//Product Price
-	private String manufactureDate;	//Product Manufacturing Date
-	private String expiryDate;		//Product Manufacturing Date
+	private Date manufactureDate;	//Product Manufacturing Date
+	private Date expiryDate;		//Product Manufacturing Date
 	
 	public Product() {
 		super();
 	}
 	
-	public Product(int pId, String pName, String pCat, double price, String manufactureDate, String expiryDate) {
+	public Product(int pId, String pName, String pCat, double price, Date manufactureDate, Date expiryDate) {
 		super();
 		this.pId = pId;
 		this.pName = pName;
@@ -62,25 +63,24 @@ public class Product {
 	}
 	
 	//Getter and Setter for Product Manufacture Date
-	public String getManufactureDate() {
+	public Date getManufactureDate() {
 		return manufactureDate;
 	}
-	public void setManufactureDate(String manufactureDate) {
+	public void setManufactureDate(Date manufactureDate) {
 		this.manufactureDate = manufactureDate;
 	}
 	
 	//Getter and Setter for Product Expiration Date
-	public String getExpiryDate() {
+	public Date getExpiryDate() {
 		return expiryDate;
 	}
-	public void setExpiryDate(String expiryDate) {
+	public void setExpiryDate(Date expiryDate) {
 		this.expiryDate = expiryDate;
 	}
-
 
 	@Override
 	public String toString() {
 		return String.format("[ Product ID: %1$s; Product Name: %2$s; Product Category: %3$s; Product Price: %4$s; Manufacturing Date: %5$s; Experation Date: %6$s ] \n",
-																										this.pId, this.pName, this.pCat, this.price, this.manufactureDate, this.expiryDate);
+																				this.pId, this.pName, this.pCat, this.price, this.manufactureDate, this.expiryDate);
 	}
 }
