@@ -22,19 +22,12 @@ public class ProductController {
 			service.update();
 			break;
 		case 4:
-			System.out.println("Please enter the customer ID");
-			//	cID = sc.next(); 
-			//	cs.delete(cID); // Is called by client to delete Customer from Customer based on their Client ID
+			service.delete();
 			break;
 		case 5:
-			System.out.println("Please enter the customer ID");
-			//	cID = sc.next();
-			//	cs.findCustomerByID(cID); // Is called by client to find Customer in Customer Array based on their Client ID
+			service.find();
 			break;
 		case 6:
-			//	cs.findYoungestCustomer(); // Is called by client to find the youngest Customer in our Client Array
-			break;
-		case 7:
 			System.exit(choice); // Is called to close program
 			break;
 		}

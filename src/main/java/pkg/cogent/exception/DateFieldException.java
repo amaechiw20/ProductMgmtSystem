@@ -6,13 +6,13 @@ package pkg.cogent.exception;
  * @date: 	Jan 18, 2023
  */
 
-public class MandatoryFieldException extends RuntimeException{
+public class DateFieldException extends RuntimeException{
 	private String errorMessage;
-	public MandatoryFieldException() {
+	public DateFieldException() {
 		super();
 	}
 	
-	public MandatoryFieldException(String errorMessage) {
+	public DateFieldException(String errorMessage) {
 		super(errorMessage);
 		this.errorMessage = errorMessage;
 	}
