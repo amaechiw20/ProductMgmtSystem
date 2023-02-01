@@ -18,17 +18,19 @@ import pkg.cogent.jdbc.JDBCUtilsProductDB;
 import pkg.cogent.model.Product;
 
 public class ProductDAOImpl implements ProductDAO{
-	private static String INSERT_PRODUCT_SQL = 	"INSERT IGNORE INTO product " + 
+	private static String INSERT_PRODUCT_SQL = "INSERT IGNORE INTO product " + 
 			"(pID, pName, category, price, manufacture_date, expiry_date) VALUES " +
 			"(?, ?, ?, ?, ?, ?);";
 	private static String QUERY = "SELECT * FROM product;";
-	private static String UPDATE_PRODUCTNAME_SQL = 		"UPDATE product SET pName = ? WHERE pID = ?;" ;
-	private static String UPDATE_PRODUCTCATEGORY_SQL =	"UPDATE product SET category = ? WHERE pID = ?;" ;
-	private static String UPDATE_PRODUCTPRICE_SQL =		"UPDATE product SET price = ? WHERE pID = ?;" ;
+	private static String UPDATE_PRODUCTNAME_SQL = "UPDATE product SET pName = ? WHERE pID = ?;" ;
+	private static String UPDATE_PRODUCTCATEGORY_SQL = "UPDATE product SET category = ? WHERE pID = ?;" ;
+	private static String UPDATE_PRODUCTPRICE_SQL =	"UPDATE product SET price = ? WHERE pID = ?;" ;
 	private static String UPDATE_PRODUCTMANU_DATE_SQL = "UPDATE product SET manufacture_date = ? WHERE pID = ?;" ;
 	private static String UPDATE_PRODUCTEXPI_DATE_SQL =	"UPDATE product SET expiry_date = ? WHERE pID = ?;" ;
+	private static String DELETE_PRODUCTBYID_SQL =	"DELETE FROM product WHERE pID = ?;"	;
+	private static String DELETE_PRODUCTFROMCAT_SQL = "DELETE FROM product WHERE category = ? and pID =?;" ;
 	private BufferedReader user = new BufferedReader(new InputStreamReader(System.in));
-	
+
 	//Adds Product to Product DB
 	@Override
 	public void addProduct() {
@@ -67,19 +69,12 @@ public class ProductDAOImpl implements ProductDAO{
 	public void displayProducts() {
 		displayQuery(JDBCUtilsProductDB.getConnection(), QUERY);
 	}
-	//
+	//Update Product in DB
 	@Override
 	public void updateProduct() {
-		int count;
-		int year;
-		int month;
-		int day;
-		int searchID = 0;
 		int choice = 0;
-		ResultSet rs = null;
-		PreparedStatement ps = null;
+		int searchID = 0;
 		do {
-			count = 0;
 			System.out.println("|-----------------------------|");
 			System.out.println("|-----Update Product Menu-----|");
 			System.out.println("|-----------------------------|");
@@ -99,135 +94,75 @@ public class ProductDAOImpl implements ProductDAO{
 					searchID = Integer.parseInt(user.readLine());
 				}
 				switch (choice) {
-				case 1:															//1-Update Name
-					updateName(connect, ps, searchID);
+				case 1:		//1-Update Name
+					updateName(connect, searchID);
 					break;
-				case 2:															//2-Update Category
-					System.out.println("Update Product Category");
-					System.out.print("Enter New Category: ");
-					String updatedCategory = user.readLine();
-					ps = connect.prepareStatement(UPDATE_PRODUCTCATEGORY_SQL);
-					ps.setString(1, updatedCategory);
-					ps.setInt(2, searchID);
-
-					count = ps.executeUpdate();
-					if(count > 0) {
-						System.out.println("Record Updated");
-						displayQuery(connect, sql);
-					}
-					else {
-						System.err.println("Error, Record not Updated " + "\n");
-					}
+				case 2:		//2-Update Category
+					updateCat(connect, searchID);
 					break;
-				case 3:															//3-Update Price
-					System.out.println("Updated Product Price");
-					System.out.print("Enter New Price: ");
-					double updatedPrice = Double.parseDouble(user.readLine());
-					ps = connect.prepareStatement(UPDATE_PRODUCTPRICE_SQL);
-					ps.setDouble(1, updatedPrice);
-					ps.setInt(2, searchID);
-
-					count = ps.executeUpdate();
-					if(count > 0) {
-						System.out.println("Record Updated");
-						displayQuery(connect, sql);
-					}
-					else {
-						System.err.println("Error, Record not Updated " + "\n");
-					}
+				case 3:		//3-Update Price
+					updatePrice(connect, searchID);
 					break;
-				case 4:															//4-Update Manufacture Date
-					System.out.println("Updating Manufacturing Date");
-					System.out.print("New Manufacturing Year: ");
-					year = Integer.parseInt(user.readLine());
-					System.out.print("New Manufacturing Month: ");
-					month = Integer.parseInt(user.readLine());
-					System.out.print("New Manufacturing Day: ");
-					day = Integer.parseInt(user.readLine());
-					String manuDate = new DecimalFormat("0000").format(year) + "-" +
-							new DecimalFormat("00").format(month) + "-" +
-							new DecimalFormat("00").format(day);
-					Date updatedManuDate = java.sql.Date.valueOf(LocalDate.parse(manuDate));
-
-					ps = connect.prepareStatement("SELECT expiry_date FROM product WHERE pID = " + searchID + ";");
-					rs = ps.executeQuery();
-					while (rs.next()) {
-						validateDateFields(updatedManuDate, rs.getDate(1));
-					}
-					ps = connect.prepareStatement(UPDATE_PRODUCTMANU_DATE_SQL);
-					ps.setDate(1, updatedManuDate);
-					ps.setInt(2, searchID);
-					count = ps.executeUpdate();
-
-					if(count > 0) {
-						System.out.println("Record Updated");
-						displayQuery(connect, sql);
-					}
-					else {
-						System.err.println("Error, Record not Updated " + "\n");
-					}
+				case 4:		//4-Update Manufacture Date
+					updateManu_Date(connect, searchID);
 					break;
-				case 5:														//5-Update Expiry Date
-					System.out.println("Updating Expiry Date");
-					System.out.print("New Expiry Year: ");
-					year = Integer.parseInt(user.readLine());
-					System.out.print("New Expiry Month: ");
-					month = Integer.parseInt(user.readLine());
-					System.out.print("New Expiry Day: ");
-					day = Integer.parseInt(user.readLine());
-					String expiDate = new DecimalFormat("0000").format(year) + "-" +
-							new DecimalFormat("00").format(month) + "-" +
-							new DecimalFormat("00").format(day);
-					Date updatedExpiDate = java.sql.Date.valueOf(LocalDate.parse(expiDate)); 
-
-					ps = connect.prepareStatement("SELECT manufacture_date FROM product WHERE pID = " + searchID + ";");
-					rs = ps.executeQuery();
-					if(rs.next()) {
-						validateDateFields(rs.getDate(1), updatedExpiDate);
-					}
-					ps = connect.prepareStatement(UPDATE_PRODUCTEXPI_DATE_SQL);
-					ps.setDate(1, updatedExpiDate);
-					ps.setInt(2, searchID);
-					count = ps.executeUpdate();
-
-					if(count > 0) {
-						System.out.println("Record Updated");
-						displayQuery(connect, sql);
-					}
-					else {
-						System.err.println("Error, Record not Updated " + "\n");
-					}
+				case 5:		//5-Update Expiry Date
+					updateExpire_Date(connect, searchID);
 					break;
 				case 6:	
 					displayProducts();
 					break;
-				default:
-					System.out.println("Choose Option from Update Menu.");
 				}
 			} catch (NumberFormatException ime) {
 				System.err.println("Failed to Update: Input Error");
 			} catch(SQLException sqle) {
 				System.err.println("Connection Error");
-			} catch (DateTimeParseException pe) {	//Fails to Add Record if LocalDate Fails to Parse Dates
-				System.err.println("Failed to Update Record: Invalid Valid Date Format please Try again");
 			} catch (IOException e) {
 				System.err.println("Failed to Update: Input Error");
-			} catch (DateFieldException mfe) { //Prints Message from DateField Exceptions
-				mfe.printStackTrace();
 			}
-
 		}while(choice != 7);
 
 	}
+	//Deletes Product from DB
 	@Override
 	public void deleteProduct() {
-		// TODO Auto-generated method stub
+		int choice = 0;
+		do {
+			System.out.println("|-----------------------------|");
+			System.out.println("|-----Delete Product Menu-----|");
+			System.out.println("|-----------------------------|");
+			System.out.println("1-Delete Product by ID");
+			System.out.println("2-Delete Product by Category");
+			System.out.println("3-Display Products");
+			System.out.println("4-Exit Update Menu");
+			System.out.print("Please enter your choice?: ");
+
+			try(Connection connect = JDBCUtilsProductDB.getConnection()){
+				choice = Integer.parseInt(user.readLine());
+				switch (choice) {
+				case 1:		//1-Deletes by ID
+					deleteProductById(connect);
+					break;
+				case 2:		//2-Deletes by Category
+					deleteProductByCategory(connect);
+					break;
+				case 3:	
+					displayProducts();
+					break;
+				}
+			} catch (NumberFormatException ime) {
+				System.err.println("Failed to Update: Input Error");
+			} catch(SQLException sqle) {
+				System.err.println("Connection Error");
+			} catch (IOException e) {
+				System.err.println("Failed to Update: Input Error");
+			}
+		}while(choice != 4);
 	}
 
-
+	//Search for a Product or Products in DB
 	@Override
 	public void findProduct() {
-
 		int choice = 0;
 		do {
 			System.out.println("|-----------------------------|");
@@ -245,24 +180,22 @@ public class ProductDAOImpl implements ProductDAO{
 				choice = Integer.parseInt(user.readLine());
 				switch(choice) {
 				case 1:
-					displayQuery(connect, findProductByName());
+					findProductByName(connect);
 					break;
 				case 2:
-					displayQuery(connect, findProductById());
+					findProductById(connect);
 					break;
 				case 3:
-					displayQuery(connect, findProductInCat());
+					findProductsInCat(connect);
 					break;
 				case 4:
-					displayQuery(connect, findCheapestProductInCat());
+					findCheapestProductInCat(connect);
 					break;
 				case 5:
-					displayQuery(connect, findExpiredProducts());
+					findExpiredProducts(connect);
 					break;
 				case 6:
 					displayProducts();
-					break;
-				default:
 					break;
 
 				}
@@ -277,6 +210,66 @@ public class ProductDAOImpl implements ProductDAO{
 		}	while(choice != 7);
 	}
 
+	//Sets Up Product Object to be Added into DB
+	private Product productSetUp() {
+			int year;
+			int month;
+			int day;
+			try {
+				System.out.print("Please enter Product ID: ");
+				int pId = Integer.parseInt(user.readLine());
+				System.out.print("Please enter Product Name: ");
+				String pName = user.readLine();
+				System.out.print("Enter Product Category: ");
+				String pCat = user.readLine();
+				System.out.print("Enter Product Price: ");
+				double price = Double.parseDouble(user.readLine());
+				System.out.print("\n");
+
+				System.out.println("Enter Manufacture Date (YYYY-MM-DD): ");
+				System.out.print("Manufacturing Year: ");
+				year = Integer.parseInt(user.readLine());
+				System.out.print("Manufacturing Month: ");
+				month = Integer.parseInt(user.readLine());
+				System.out.print("Manufacturing Day: ");
+				day = Integer.parseInt(user.readLine());
+
+				String manufactureDate = new DecimalFormat("0000").format(year) + "-" +
+						new DecimalFormat("00").format(month) + "-" +
+						new DecimalFormat("00").format(day);
+				System.out.print("\n");
+
+				System.out.println("Please enter Expiry Date (YYYY/MM/DD): ");
+				System.out.print("Expiry Year: ");
+				year = Integer.parseInt(user.readLine());
+
+				System.out.print("Expiry Month: ");
+				month = Integer.parseInt(user.readLine());
+
+				System.out.print("Expiry Day: ");
+				day = Integer.parseInt(user.readLine());
+				System.out.print("\n");
+
+				String expiryDate = new DecimalFormat("0000").format(year) + "-" +
+						new DecimalFormat("00").format(month) + "-" +
+						new DecimalFormat("00").format(day);
+				Date manDate = java.sql.Date.valueOf(LocalDate.parse(manufactureDate)); //Creates a ManufactureDate Date Object
+				Date expDate = java.sql.Date.valueOf(LocalDate.parse(expiryDate));		//Creates a ManufactureDate Date Object
+
+				validateDateFields(manDate, expDate); //Checks if this is a valid Product Object
+
+				return new Product(pId, pName, pCat, price, manDate, expDate);
+
+			} catch (DateTimeParseException pe) {	//Fails to Add Record if LocalDate Fails to Parse Dates
+				System.err.println("Failed to Add Record: Invalid Valid Date Format");
+			} catch (NumberFormatException ime) {
+				System.err.println("Failed to Add to Record: Input Error");
+			} catch(IOException ioe) {
+				System.err.println("Failed to Add Record: Input Error");
+			}
+			return null;
+
+		}
 	//Checks if the Mandatory Fields in Customer is valid
 	private void validateDateFields(Date manufacturing_date, Date expiry) {
 		//Fails to add Record if no Manufacturing Date or Expiry Date is not added to Product
@@ -325,13 +318,63 @@ public class ProductDAOImpl implements ProductDAO{
 			}
 		}
 	}
+	
+	//Deletes Product by User ID
+	private void deleteProductById(Connection connect) {
+		System.out.println(	"|-------Deleting Product-------|");
+		try {
+			System.out.print("Searching for ID: ");
+			int searchID = Integer.parseInt(user.readLine());
+			PreparedStatement ps = connect.prepareStatement(DELETE_PRODUCTBYID_SQL);
+			ps.setInt(1, searchID);
+			
+			int count = ps.executeUpdate();
+			if(count > 0) {
+				System.out.println("Record Deleted");
+			}
+			else {
+				System.err.println("Error, Record not Updated " + "\n");
+			}
+		}	 catch (IOException e) {
+			System.err.println("Failed to Search: Input Error");
+		}	catch (SQLException sqle) {
+			System.err.println("Connection Error");
+		}
+	}
+	private void deleteProductByCategory(Connection connect) {
+		System.out.println(	"|-------Deleting Product in Category-------|");
+		try {
+			System.out.print("Searching for Category: ");
+			String category = user.readLine();
+			System.out.print("Searching for ID: ");
+			int searchID = Integer.parseInt(user.readLine());
+			PreparedStatement ps = connect.prepareStatement(DELETE_PRODUCTFROMCAT_SQL);
+			ps.setString(1,category);
+			ps.setInt(2, searchID);
+			int count = ps.executeUpdate();
+			if(count > 0) {
+				System.out.println("Record Deleted");
+			}
+			else {
+				
+				System.err.println("Error, Record not Updated " + "\n");
+			}
+		}	 catch (IOException e) {
+			System.err.println("Failed to Search: Input Error");
+		}	catch (SQLException sqle) {
+			System.err.println("Connection Error");
+		}
+	}
+	
+	
+	
 	//Update the name of Product in DB
-	private void updateName(Connection connect, PreparedStatement ps, int searchID){
-		System.out.println("Updating Product Name");
+	private void updateName(Connection connect, int searchID){
+		System.out.println(	"|-------Updating Product Name-------|");
 		System.out.print("Enter New Name: ");
 		try {
 			String updatedName = user.readLine();
-			ps = connect.prepareStatement(UPDATE_PRODUCTNAME_SQL);
+			PreparedStatement ps = connect.prepareStatement(UPDATE_PRODUCTNAME_SQL);
 			ps.setString(1, updatedName);
 			ps.setInt(2, searchID);
 
@@ -349,118 +392,180 @@ public class ProductDAOImpl implements ProductDAO{
 			System.err.println("Connection Error");
 		}
 	}
+	//Update the category of Product in DB
+	private void updateCat(Connection connect, int searchID) {
+		System.out.println(	"|------Update Product Category------|");
+		System.out.print("Enter New Category: ");
+		try {;
+			String updatedCategory = user.readLine();
+			PreparedStatement ps  = connect.prepareStatement(UPDATE_PRODUCTCATEGORY_SQL);
+			ps.setString(1, updatedCategory);
+			ps.setInt(2, searchID);
+
+			int count = ps.executeUpdate();
+			if(count > 0) {
+				System.out.println("Record Updated");
+				displayQuery(connect, ("SELECT * FROM product WHERE pID = " + searchID + ";"));
+			}
+			else {
+				System.err.println("Error, Record not Updated " + "\n");
+			}
+		} catch (IOException e) {
+			System.err.println("Failed to Update: Input Error");
+		} catch (SQLException sqle) {
+			System.err.println("Connection Error");
+		}
+	}
+	//Update the price of Product in DB
+	private void updatePrice(Connection connect, int searchID) {
+		System.out.println(	"|-------Updated Product Price-------|");
+		System.out.print("Enter New Price: ");
+		try {
+			double updatedPrice = Double.parseDouble(user.readLine());
+			PreparedStatement ps = connect.prepareStatement(UPDATE_PRODUCTPRICE_SQL);
+			ps.setDouble(1, updatedPrice);
+			ps.setInt(2, searchID);
+
+			int count = ps.executeUpdate();
+			if(count > 0) {
+				System.out.println("Record Updated");
+				displayQuery(connect, ("SELECT * FROM product WHERE pID = " + searchID + ";"));
+			}
+			else {
+				System.err.println("Error, Record not Updated " + "\n");
+			}	
+		}	catch (IOException e) {
+			System.err.println("Failed to Update: Input Error");
+		}	catch (SQLException sqle) {
+			System.err.println("Connection Error");
+		}
+	}
+	//Update Manufacturing Date of Product in DB
+	private void updateManu_Date(Connection connect, int searchID) {
+		System.out.println("|----Updating Manufacturing Date----|");
+		try {
+			System.out.print("New Manufacturing Year: ");
+			int year = Integer.parseInt(user.readLine());
+			System.out.print("New Manufacturing Month: ");
+			int month = Integer.parseInt(user.readLine());
+			System.out.print("New Manufacturing Day: ");
+			int day = Integer.parseInt(user.readLine());
+			String manuDate = new DecimalFormat("0000").format(year) + "-" +
+					new DecimalFormat("00").format(month) + "-" +
+					new DecimalFormat("00").format(day);
+			Date updatedManuDate = java.sql.Date.valueOf(LocalDate.parse(manuDate));
+
+			PreparedStatement ps = connect.prepareStatement("SELECT expiry_date FROM product WHERE pID = " + searchID + ";");
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				validateDateFields(updatedManuDate, rs.getDate(1));
+			}
+			ps = connect.prepareStatement(UPDATE_PRODUCTMANU_DATE_SQL);
+			ps.setDate(1, updatedManuDate);
+			ps.setInt(2, searchID);
+			int count = ps.executeUpdate();
+
+			if(count > 0) {
+				System.out.println("Record Updated");
+				displayQuery(connect, ("SELECT * FROM product WHERE pID = " + searchID + ";"));
+			}
+			else {
+				System.err.println("Error, Record not Updated ");
+			}
+		}	catch (IOException e) {
+			System.err.println("Failed to Update: Input Error");
+		}	catch (SQLException sqle) {
+			System.err.println("Connection Error");
+		}
+	}
+	//Update Expiry Date of Product in DB
+	private void updateExpire_Date(Connection connect, int searchID)  {
+		System.out.println("|-------Updating Expiry Date-------|");
+		try {
+			System.out.print("New Expiry Year: ");
+			int year = Integer.parseInt(user.readLine());
+			System.out.print("New Expiry Month: ");
+			int month = Integer.parseInt(user.readLine());
+			System.out.print("New Expiry Day: ");
+			int day = Integer.parseInt(user.readLine());
+			String expiDate = new DecimalFormat("0000").format(year) + "-" +
+				new DecimalFormat("00").format(month) + "-" +
+				new DecimalFormat("00").format(day);
+			Date updatedExpiDate = java.sql.Date.valueOf(LocalDate.parse(expiDate)); 
+
+			PreparedStatement ps = connect.prepareStatement("SELECT manufacture_date FROM product WHERE pID = " + searchID + ";");
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				validateDateFields(rs.getDate(1), updatedExpiDate);
+			}
+			ps = connect.prepareStatement(UPDATE_PRODUCTEXPI_DATE_SQL);
+			ps.setDate(1, updatedExpiDate);
+			ps.setInt(2, searchID);
+			int count = ps.executeUpdate();
+
+			if(count > 0) {
+				System.out.println("Record Updated");
+				displayQuery(connect, ("SELECT * FROM product WHERE pID = " + searchID + ";"));
+			}
+			else {
+				System.err.println("Error, Record not Updated ");
+			}
+		}	catch (IOException e) {
+			System.err.println("Failed to Update: Input Error");
+		}	catch (SQLException sqle) {
+			System.err.println("Connection Error");
+		}
+	}
+	
 	
 	//Returns Query to Search DB for Product by Product Name
-	private String findProductByName() {
-		System.out.println("Searching Product Name");
+	private void findProductByName(Connection connect) {
+		System.out.println(	"|------Searching Product Name------|");
 		System.out.print("Searching for: ");
 		try {
-			return ("SELECT * FROM product WHERE pName = " + "\'" + user.readLine() + "\'" + ";");
+			displayQuery(connect, ("SELECT * FROM product WHERE pName = " + "\'" + user.readLine() + "\'" + ";"));
 
 		} catch (IOException e) {
-			System.err.println("Failed to Search: Input Error");
+			System.err.println("Failed to Update: Input Error");
 		}
-		return null;
 	}
 	//Returns Query to Search DB for Product by Product ID
-	private String findProductById() {
-		System.out.println("Searching Product ID");
+	private void findProductById(Connection connect) {
+		System.out.println(	"|-------Searching Product ID-------|");
 		System.out.print("Searching for: ");
 		try {
-			return ("SELECT * FROM product WHERE pID = " + "\'" + Integer.parseInt(user.readLine())  + "\'" + ";");
+			displayQuery(connect, ("SELECT * FROM product WHERE pID = " + "\'" + Integer.parseInt(user.readLine())  + "\'" + ";"));
 
 		} catch (IOException e) {
 			System.err.println("Failed to Search: Input Error");
 		}
-		return null;
 	}
 	//Returns Query to Search DB for Products in Product Category
-	private String findProductInCat() {
-		System.out.println("Searching Cheapest Product in Category");
+	private void findProductsInCat(Connection connect) {
+		System.out.println(	"|-----Searching Products in Category-----|");
 		System.out.print("Searching for Category: ");
 		try {
-			return ("SELECT * FROM product WHERE category = " + "\'" + user.readLine()  + "\'" + ";");
+			displayQuery(connect, ("SELECT * FROM product WHERE category = " + "\'" + user.readLine()  + "\'" + ";"));
 
 		} catch (IOException e) {
 			System.err.println("Failed to Search: Input Error");
 		}
-		return null;
 	}
 	//Returns Query to Search DB for Cheapest Product in  Product Category
-	private String findCheapestProductInCat() {
-		System.out.println("Searching Cheapest Product in Category");
+	private void findCheapestProductInCat(Connection connect) {
+		System.out.println(	"|----Searching Cheapest Product in Category----|");
 		System.out.print("Searching for Category: ");
 		try {
-			return ("SELECT * FROM product WHERE category = " + "\'" + user.readLine()  + "\'" +  " AND (SELECT MIN(price) FROM pieces;");
+			displayQuery(connect, ("SELECT * FROM product WHERE category = " + "\'" + user.readLine()  + "\'" +  " AND (SELECT MIN(price) FROM pieces);"));
 
 		} catch (IOException e) {
 			System.err.println("Failed to Search: Input Error");
 		}
-		return null;
 	}
 	//Returns Query to Search DB for All Expired Products
-	private String findExpiredProducts() {
-		System.out.println("Searching All Expired Product in Category");
-		return ("SELECT * FROM product WHERE expiry_date <= CURDATE();");
+	private void findExpiredProducts(Connection connect) {
+		System.out.println("|----Searching All Expired Product in Category----|");
+		displayQuery(connect, ("SELECT * FROM product WHERE expiry_date <= CURDATE();"));
 	}
-	//Sets Up Product Object to be Added into DB
-	private Product productSetUp() {
-		int year;
-		int month;
-		int day;
-		try {
-			System.out.print("Please enter Product ID: ");
-			int pId = Integer.parseInt(user.readLine());
-			System.out.print("Please enter Product Name: ");
-			String pName = user.readLine();
-			System.out.print("Enter Product Category: ");
-			String pCat = user.readLine();
-			System.out.print("Enter Product Price: ");
-			double price = Double.parseDouble(user.readLine());
-			System.out.print("\n");
 
-			System.out.println("Enter Manufacture Date (YYYY-MM-DD): ");
-			System.out.print("Manufacturing Year: ");
-			year = Integer.parseInt(user.readLine());
-			System.out.print("Manufacturing Month: ");
-			month = Integer.parseInt(user.readLine());
-			System.out.print("Manufacturing Day: ");
-			day = Integer.parseInt(user.readLine());
-
-			String manufactureDate = new DecimalFormat("0000").format(year) + "-" +
-					new DecimalFormat("00").format(month) + "-" +
-					new DecimalFormat("00").format(day);
-			System.out.print("\n");
-
-			System.out.println("Please enter Expiry Date (YYYY/MM/DD): ");
-			System.out.print("Expiry Year: ");
-			year = Integer.parseInt(user.readLine());
-
-			System.out.print("Expiry Month: ");
-			month = Integer.parseInt(user.readLine());
-
-			System.out.print("Expiry Day: ");
-			day = Integer.parseInt(user.readLine());
-			System.out.print("\n");
-
-			String expiryDate = new DecimalFormat("0000").format(year) + "-" +
-					new DecimalFormat("00").format(month) + "-" +
-					new DecimalFormat("00").format(day);
-			Date manDate = java.sql.Date.valueOf(LocalDate.parse(manufactureDate)); //Creates a ManufactureDate Date Object
-			Date expDate = java.sql.Date.valueOf(LocalDate.parse(expiryDate));		//Creates a ManufactureDate Date Object
-
-			validateDateFields(manDate, expDate); //Checks if this is a valid Product Object
-
-			return new Product(pId, pName, pCat, price, manDate, expDate);
-
-		} catch (DateTimeParseException pe) {	//Fails to Add Record if LocalDate Fails to Parse Dates
-			System.err.println("Failed to Add Record: Invalid Valid Date Format");
-		} catch (NumberFormatException ime) {
-			System.err.println("Failed to Add to Record: Input Error");
-		} catch(IOException ioe) {
-			System.err.println("Failed to Add Record: Input Error");
-		}
-		return null;
-
-	}
 }

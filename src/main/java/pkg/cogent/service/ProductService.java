@@ -1,8 +1,5 @@
 package pkg.cogent.service;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
 import pkg.cogent.dao.ProductDAOImpl;
 /**
  * 
@@ -11,29 +8,27 @@ import pkg.cogent.dao.ProductDAOImpl;
  */
 public class ProductService {
 	ProductDAOImpl dao = new ProductDAOImpl();
-	BufferedReader user = new BufferedReader(new InputStreamReader(System.in));
 
 	public ProductService() {
 		dao = new ProductDAOImpl();
 	}
-
+	//Adds Product to DB
 	public void add() {
 		dao.addProduct();
 	}
-
-	//Display All Product in DB
+	//Display All Products in DB
 	public void display() { 
 		dao.displayProducts();
 	}
-
 	//Updates A Product in DB
 	public void update() {
 		dao.updateProduct();
 	}
+	//Deletes A Product in DB
 	public void delete() {
-		dao.deleteProduct();	// Calls the DAOImpl to delete a Customer the Customer Array
+		dao.deleteProduct();
 	}
-
+	//Searches For Product in DB
 	public void find() {
 		dao.findProduct();	// Calls the DAOImpl to find a Customer in the Customer Array
 	}
